@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum LeisureCategory {
+  SPORTS
+  READING
+  SOCIAL
+  REST
+  CULTURE
+  CREATIVITY
+  OUTDOOR
+}
+
+enum PriorityLevel {
+  LIGHT
+  MODERATE
+  IMPORTANT
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  tasks        LeisureTask[]
+  logs         ActivityLog[]
+  goals        Goal[]
+  achievements Achievement[]
+}
+
+model LeisureTask {
+  id            String         @id @default(cuid())
+  title         String
+  description   String?
+  category      LeisureCategory
+  priority      PriorityLevel
+  dueDate       DateTime
+  estimatedMins Int            @default(30)
+  completed     Boolean        @default(false)
+  completedAt   DateTime?
+  reminderAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id        String          @id @default(cuid())
+  date      DateTime
+  category  LeisureCategory
+  minutes   Int
+  notes     String?
+  createdAt DateTime        @default(now())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Goal {
+  id             String   @id @default(cuid())
+  title          String
+  targetMinutes  Int
+  periodType     String
+  periodStart    DateTime
+  periodEnd      DateTime
+  achieved       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String
+  label       String
+  description String
+  unlockedAt  DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, code])
+}
